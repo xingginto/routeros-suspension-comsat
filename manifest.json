@@ -1,0 +1,99 @@
+{
+  "version": "1",
+  "information": {
+    "name": "routeros-suspension-comsat",
+    "displayName": "Mikrotik RouterOS - suspension (Comsat)",
+    "description": "Plugin for handling suspension on RouterOS devices. Resolves each client's IP address(es) from a CLIENT custom attribute (e.g. the one filled by ip-address-sync/quesync-comsat) instead of the Network (NMS) app.",
+    "url": "https://github.com/xingginto/routeros-suspension-comsat",
+    "version": "1.0.0",
+    "ucrmVersionCompliancy": {
+      "min": "2.15.0-beta3",
+      "max": null
+    },
+    "author": "xingginto"
+  },
+  "configuration": [
+    {
+      "key": "attributeName",
+      "label": "IP Address Custom Attribute Name",
+      "description": "The exact name of the CLIENT custom attribute holding the client's IP address(es) (default: IP Address). Multiple IPs may be comma-separated; all are blocked/unblocked together.",
+      "required": 1,
+      "type": "text"
+    },
+    {
+      "key": "mikrotikIpAddress",
+      "label": "IP Address",
+      "description": "IP address of Mikrotik gateway. For more gateways you can use multiple configuration values in IP Address, User name and Password fields. Just put each value on a new line. The number and order of rows must be consistent in all filled fields.",
+      "required": 1,
+      "type": "textarea"
+    },
+    {
+      "key": "mikrotikUserName",
+      "label": "User name",
+      "required": 1,
+      "type": "textarea"
+    },
+    {
+      "key": "mikrotikPassword",
+      "label": "Password",
+      "required": 0,
+      "type": "textarea"
+    },
+    {
+      "key": "mikrotikSubnets",
+      "label": "Subnet to sync",
+      "description": "Subnet(s) to sync per device. One line per device, matching the order of the IP Address field. Separate multiple subnets on the same line with commas, e.g. 192.168.0.0/24,192.168.8.0/24. Leave a line blank to sync all IPs to that device.",
+      "required": 0,
+      "type": "textarea"
+    },
+    {
+      "key": "captivePortalIp",
+      "label": "Captive Portal IP address",
+      "description": "IP address of the captive portal VM (e.g. 192.168.99.113). Blocked users will have DNS, HTTP and HTTPS redirected here. This IP is automatically included in the walled garden.",
+      "required": 1,
+      "type": "text"
+    },
+    {
+      "key": "walledGardenIps",
+      "label": "Walled Garden IPs",
+      "description": "Additional IP addresses blocked users may reach freely (e.g. payment portal IPs). One IP per line. The Captive Portal IP is always included automatically.",
+      "required": 0,
+      "type": "textarea"
+    },
+    {
+      "key": "timezone",
+      "label": "Server Timezone",
+      "description": "PHP timezone for date calculations. Must match your UISP timezone setting (e.g. Asia/Singapore, Asia/Manila, America/New_York). Leave blank to use UTC.",
+      "required": 0,
+      "type": "text"
+    }
+  ],
+  "menu": [
+    {
+      "key": "SuspensionComsatSync",
+      "label": "Sync",
+      "type": "admin",
+      "target": "iframe",
+      "parameters": {
+        "option": "Sync"
+      }
+    },
+    {
+      "key": "SuspensionComsatResetLog",
+      "label": "Reset Plugin Log",
+      "type": "admin",
+      "target": "iframe",
+      "parameters": {
+        "option": "reset-log"
+      }
+    }
+  ],
+  "supportsWebhookEvents": true,
+  "webhooks": [
+    "service.edit",
+    "service.end",
+    "service.suspend",
+    "service.postpone",
+    "service.suspend_cancel"
+  ]
+}
