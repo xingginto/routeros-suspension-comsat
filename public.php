@@ -69,7 +69,7 @@ if (isset($data['option']) && $data['option'] === 'ajax-sync') {
     $security = UcrmSecurity::create();
     $user = $security->getUser();
     if (!$user || $user->isClient || !$user->hasViewPermission(PermissionNames::CLIENTS_SERVICES)) {
-        sendEvent('Access denied', 'error');
+        sendEvent('Access denied', 'fatal');
         exit;
     }
 
@@ -86,7 +86,7 @@ if (isset($data['option']) && $data['option'] === 'ajax-sync') {
         try {
             $configs = Suspender::buildDeviceConfigs($config);
         } catch (\Exception $e) {
-            sendEvent($e->getMessage(), 'error');
+            sendEvent($e->getMessage(), 'fatal');
             exit;
         }
 
@@ -222,7 +222,7 @@ if (isset($data['option']) && $data['option'] === 'ajax-sync') {
         sendEvent("Synchronization completed for {$totalDevices} device(s)", 'complete');
 
     } catch (\Exception $e) {
-        sendEvent('Error: ' . $e->getMessage(), 'error');
+        sendEvent('Error: ' . $e->getMessage(), 'fatal');
     }
     exit;
 }
@@ -424,6 +424,7 @@ if (!$user || $user->isClient || !$user->hasViewPermission(PermissionNames::CLIE
         .log-success { color: #81c784; }
         .log-warning { color: #ffb74d; }
         .log-error { color: #e57373; }
+        .log-fatal { color: #e57373; font-weight: bold; }
         .log-complete { color: #4caf50; font-weight: bold; }
         .log-sync { color: #ce93d8; }
         .status-bar { margin-top: 15px; padding: 12px 15px; background: #e3f2fd; border-radius: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -450,7 +451,7 @@ if (!$user || $user->isClient || !$user->hasViewPermission(PermissionNames::CLIE
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
             </svg>
-            RouterOS Suspension Comsat Sync v1.0.0
+            RouterOS Suspension Comsat Sync v1.0.1
         </h2>
         <p class="hint">Blocks/unblocks each client's IP(s), resolved from a client custom attribute (not the Network/NMS app). Multiple comma-separated IPs are all blocked/unblocked together. If a run is interrupted, use <strong>Continue Sync</strong> to resume without restarting from Phase 1.</p>
 
@@ -492,7 +493,7 @@ if (!$user || $user->isClient || !$user->hasViewPermission(PermissionNames::CLIE
 
         function addLog(message, type = 'info') {
             const time = new Date().toLocaleTimeString('en-US', {hour12: false});
-            const icons = { success: '✓', error: '✗', warning: '⚠', complete: '★', info: '→', sync: '↻' };
+            const icons = { success: '✓', error: '✗', fatal: '✗', warning: '⚠', complete: '★', info: '→', sync: '↻' };
             const icon = icons[type] || '→';
             const entry = document.createElement('div');
             entry.className = 'log-entry';
@@ -553,7 +554,7 @@ if (!$user || $user->isClient || !$user->hasViewPermission(PermissionNames::CLIE
                     const data = JSON.parse(e.data);
                     addLog(data.message, data.type);
 
-                    if (data.type === 'complete' || data.type === 'error') {
+                    if (data.type === 'complete' || data.type === 'fatal') {
                         eventSource.close();
                         isRunning = false;
                         syncBtn.disabled = false;
@@ -561,6 +562,12 @@ if (!$user || $user->isClient || !$user->hasViewPermission(PermissionNames::CLIE
                         statusBar.className = 'status-bar ' + (data.type === 'complete' ? 'success' : 'error');
                         statusText.textContent = data.type === 'complete' ? 'Sync completed!' : 'Sync failed!';
                         checkProgress();
+                    } else if (data.type === 'error') {
+                        // Per-device errors are non-fatal and logged inline; the
+                        // backend keeps syncing remaining devices. Closing the
+                        // stream here would abort that in-progress PHP script
+                        // (no ignore_user_abort on this branch), so just log it.
+                        statusText.textContent = 'Syncing (error on a device, continuing)...';
                     }
                 } catch(err) {
                     addLog(e.data, 'info');

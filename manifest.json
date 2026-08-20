@@ -5,7 +5,7 @@
     "displayName": "Mikrotik RouterOS - suspension (Comsat)",
     "description": "Plugin for handling suspension on RouterOS devices. Resolves each client's IP address(es) from a CLIENT custom attribute (e.g. the one filled by ip-address-sync/quesync-comsat) instead of the Network (NMS) app.",
     "url": "https://github.com/xingginto/routeros-suspension-comsat",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "ucrmVersionCompliancy": {
       "min": "2.15.0-beta3",
       "max": null
